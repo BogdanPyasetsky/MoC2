@@ -8,6 +8,9 @@ using System.IO;
 
 
 
+
+
+
 namespace MoC2
 {
     class Program
@@ -57,7 +60,7 @@ namespace MoC2
                 for (int i = 0; i < m; i++)
                     for (int j = 0; j < m; j++)
                         if ((Text[t] == alphabet[i]) && (Text[t + 1] == alphabet[j]))
-                            frq[32 * i + j]++;
+                            frq[m * i + j]++;
             }
             for (int i = 0; i < frq.Length; i++)
             {
@@ -68,8 +71,88 @@ namespace MoC2
         }
 
 
+        
 
-        static string[] GenerateTexts(int L, int N, int GenerationMethod)
+
+        static string Dist1(string PlainText, char[] alphabet, int r, int l)  // Віженер
+        {
+            int m = alphabet.Length;
+            string ResultString = "";
+            int TempNumber = 0;
+            int[] key = new int[r];
+            Random rng = new Random();
+
+            switch (l)
+            {
+                case 1:
+                    for (int i = 0; i < r; i++)
+                        key[i] = rng.Next(m);
+                    for (int t = 0; t < PlainText.Length; t++)
+                    {
+                        for (int i = 0; i < m; i++)
+                            if (PlainText[t] == alphabet[i])
+                                TempNumber = i;
+                        TempNumber += key[t % r];
+                        TempNumber = TempNumber % m;
+                        ResultString += alphabet[TempNumber];
+                    }
+                    return ResultString;
+
+                case 2:
+                    for (int i = 0; i < r; i++)
+                        key[i] = rng.Next(m * m);
+                    for (int t = 0; t < PlainText.Length; t+= 2)
+                    {
+                        for (int i = 0; i < m; i++)
+                            for (int j = 0; j < m; j++)
+                                if ((PlainText[t] == alphabet[i]) && (PlainText[t+1] == alphabet[j]))
+                                    TempNumber = m * i + j;
+                        TempNumber += key[t % r];
+                        TempNumber = TempNumber % (m * m);
+                        ResultString += alphabet[TempNumber / m];
+                        ResultString += alphabet[TempNumber % m];
+                    }
+                    return ResultString;
+
+                default:
+                    return "Error";
+            }           
+        }
+
+
+        static string Dist3(string PlainText, char[] alphabet, int l)  // рівномірно розподілена послідовність
+        {
+            int m = alphabet.Length;
+            string ResultString = "";
+            Random rng = new Random();
+            int TempNumber;
+
+            switch (l)
+            {
+                case 1:
+                    for (int t = 0; t < PlainText.Length; t++)
+                    {
+                        TempNumber = rng.Next(m);
+                        ResultString += alphabet[TempNumber];
+                    }
+                    return ResultString;
+
+                case 2:
+                    for (int t = 0; t < PlainText.Length; t+= 2)
+                    {
+                        TempNumber = rng.Next(m * m);
+                        ResultString += alphabet[TempNumber / m];
+                        ResultString += alphabet[TempNumber % m];
+                    }
+                    return ResultString;
+
+                default:
+                    return "Error";
+            }
+        }
+
+
+        static string[] DistortTexts(int L, int N, int GenerationMethod)
         {
             string MainText = File.ReadAllText("pr_text.txt");
             char[] Letter = new char[] {'а', 'б', 'в', 'г', 'д', 'е', 'є', 'ж', 'з', 'и', 'і', 'ї', 'й',
@@ -105,15 +188,13 @@ namespace MoC2
             char[] Letter = new char[] {'а', 'б', 'в', 'г', 'д', 'е', 'є', 'ж', 'з', 'и', 'і', 'ї', 'й',
                 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'ю', 'я' };
 
-            TextProcessing();
-            //var t = MonogramsFrequency(MainText, Letter);
-            var t = BigramsFrequency(MainText, Letter);
-            double z = 0;
-            for (int i = 0; i < t.Length ; i++)
-                z += t[i];
-            Console.WriteLine(z);
+            
+            //TextProcessing();
+            var t = Dist1(MainText, Letter, 10, 1);            
+            Console.WriteLine(t);
 
-
+            var d = Dist3(MainText, Letter, 2);
+            Console.WriteLine(d);
 
             Console.ReadKey();
         }
