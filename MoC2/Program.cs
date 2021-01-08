@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 
 
 
@@ -19,9 +20,11 @@ namespace MoC2
         {
             string RawText = File.ReadAllText("raw_text.txt", Encoding.UTF8);
             string Text = RawText.ToLower();
-            Text = Text.Replace("\n", ""); Text = Text.Replace("\r", "");
+            Text = Text.Replace("\n", ""); Text = Text.Replace("\r", ""); 
             Text = Text.Replace("ґ", "г"); Text = Text.Replace(" ", "");
-            Text = String.Join("", Text.Split('/', '.', ',', '-', '(', ')', '!', '?', '`', '\'', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'));
+            Text = String.Join("", Text.Split('/', '.', ',', '-', '—', '«', '»', '(', ')', '[', ']', '{', '}', '!', '?', '`', '\'',
+               '#', '*', '№', ':', ';', '…', ' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'));
+            Text = Regex.Replace(Text, @"\s", "");
             //Console.WriteLine(Text);
             if (Text.Length % 2 == 1)
                 Text = Text.Remove(Text.Length - 1, 1);
@@ -78,6 +81,73 @@ namespace MoC2
             return frq;
         }
 
+        static double Entropy (string Text, char[] alphabet, int l)
+        {
+            int L = Text.Length;
+            var pow = Math.Pow(alphabet.Length, l);
+            int m = (int)pow;
+            double entr = 0;
+            double[] frequency = new double[m];
+
+            switch (l)
+            {
+                case 1:
+                    frequency = MonogramsFrequency(Text, alphabet);
+                    break;
+
+                case 2:
+                    frequency = BigramsFrequency(Text, alphabet);
+                    break;
+
+                default:
+                    Console.WriteLine("Error");
+                    break;
+            }
+
+            for (int i = 0; i < m; i++)
+            {
+                if(frequency[i] != 0)
+                    entr -= (frequency[i] * Math.Log(frequency[i], 2));                
+            }
+            entr = entr / (double)l;
+            return entr;
+        }
+
+        static double CompIdx(string Text, char[] alphabet, int l)
+        {
+            int L = Text.Length;
+            var pow = Math.Pow(alphabet.Length, l);
+            int m = (int)pow;
+            double CIDX = 0;
+            double[] frequency = new double[m];
+
+            switch (l)
+            {
+                case 1:
+                    frequency = MonogramsFrequency(Text, alphabet);
+                    break;
+
+                case 2:
+                    frequency = BigramsFrequency(Text, alphabet);
+                    break;
+
+                default:
+                    Console.WriteLine("Error");
+                    break;
+            }
+
+            for (int i = 0; i < m; i++)
+            {
+                CIDX += (frequency[i] * (frequency[i] - 1));
+            }
+            CIDX = CIDX / (double)(L * (L - 1));
+            return CIDX;
+        }
+
+
+
+
+
 
         static int GCD(int a, int b)
         {
@@ -90,8 +160,6 @@ namespace MoC2
             }
             return a | b;
         }
-
-
 
 
         static string Dist1(string PlainText, char[] alphabet, int r, int l)  // Віженер
@@ -297,7 +365,7 @@ namespace MoC2
             string TempString;
 
             int r = 5;  // key lenght for Dist1
-            int l = 1;  // l-gram
+            int l = 1;  // l-gramm
             
 
             switch (DistortionMethod)
@@ -343,22 +411,28 @@ namespace MoC2
 
 
 
+
+
+
+
         static void Main(string[] args)
         {
-
+            //TextProcessing();
             string MainText = File.ReadAllText("pr_text.txt");
             char[] Letter = new char[] {'а', 'б', 'в', 'г', 'д', 'е', 'є', 'ж', 'з', 'и', 'і', 'ї', 'й',
                 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'ю', 'я' };
 
-            
-            //TextProcessing();
-            var t = Dist2(MainText, Letter, 1);            
-            Console.WriteLine(t);
+            var H1 = CompIdx(MainText, Letter, 1);
+            Console.WriteLine(H1);
 
-            var d = Dist4(MainText, Letter, 2);
-            Console.WriteLine(d);
-           
+            var H2 = CompIdx(MainText, Letter, 2);
+            Console.WriteLine(H2);
 
+            //Console.WriteLine(Math.Log(0, 2));
+
+
+
+            Console.WriteLine("Done.");
             Console.ReadKey();
         }
     }
