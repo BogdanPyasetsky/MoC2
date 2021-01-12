@@ -53,7 +53,24 @@ namespace MoC2
             }
             return frq;
         }
-       
+
+        static int[] MonogramsCount(string Text, char[] alphabet)
+        {
+            int m = alphabet.Length;
+            int[] frq = new int[m];
+            for (int t = 0; t < Text.Length; t++)
+            {
+                for (int i = 0; i < m; i++)
+                {
+                    if (Text[t] == alphabet[i])
+                    {
+                        frq[i]++;
+                    }
+                }
+            }            
+            return frq;
+        }
+
         static double[] BigramsFrequency(string Text, char[] alphabet)
         {
             int m = alphabet.Length;
@@ -75,6 +92,26 @@ namespace MoC2
             {
                 frq[i] = (frq[i] * 2) / (double)Text.Length;
             }
+            return frq;
+        }
+
+        static int[] BigramsCount(string Text, char[] alphabet)
+        {
+            int m = alphabet.Length;
+            int[] frq = new int[m * m];
+            for (int t = 0; t < Text.Length; t += 2)
+            {
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < m; j++)
+                    {
+                        if ((Text[t] == alphabet[i]) && (Text[t + 1] == alphabet[j]))
+                        {
+                            frq[m * i + j]++;
+                        }
+                    }
+                }
+            }            
             return frq;
         }
 
@@ -142,16 +179,16 @@ namespace MoC2
             var pow = Math.Pow(alphabet.Length, l);
             int m = (int)pow;
             double CIDX = 0;
-            double[] frequency = new double[m];
+            int[] count = new int[m];
 
             switch (l)
             {
                 case 1:
-                    frequency = MonogramsFrequency(Text, alphabet);
+                    count = MonogramsCount(Text, alphabet);
                     break;
 
                 case 2:
-                    frequency = BigramsFrequency(Text, alphabet);
+                    count = BigramsCount(Text, alphabet);
                     break;
 
                 default:
@@ -161,11 +198,13 @@ namespace MoC2
 
             for (int i = 0; i < m; i++)
             {
-                CIDX += (frequency[i] * (frequency[i] - 1));
+                CIDX += (count[i] * (count[i] - 1));
             }
             CIDX = CIDX / (double)(L * (L - 1));
             return CIDX;
         }
+
+        
 
 
         static int GCD(int a, int b)
@@ -332,7 +371,7 @@ namespace MoC2
             }
         }
 
-        static string Dist4(string PlainText, char[] alphabet, int l)
+        static string Dist4(string PlainText, char[] alphabet, int l)  // формула
         {
             int m = alphabet.Length;
             string ResultString = "";
@@ -374,7 +413,7 @@ namespace MoC2
 
 
 
-        static string[] DistortTexts(int L, int N, int DistortionMethod)
+        static string[] DistortTexts(int L, int N, int DistortionMethod, int d, int l)
         {
             string MainText = File.ReadAllText("pr_text.txt");
             char[] Letter = new char[] {'а', 'б', 'в', 'г', 'д', 'е', 'є', 'ж', 'з', 'и', 'і', 'ї', 'й',
@@ -384,40 +423,46 @@ namespace MoC2
             string[] DistdText = new string[N];
             string TempString;
 
-            int r = 5;  // key lenght for Dist1
-            int l = 1;  // l-gramm
+            int r;  // key lenght for Dist1
+            //int l = 1;  // l-gramm
+            //int d = 105;  // for text partitioning
+            if (l == 1)
+                r = 5;
+            else
+                r = 10;
+
 
 
             switch (DistortionMethod)
             {
                 case 1:
-                    for (int i = 0; i < N; N++)
+                    for (int i = 0; i < N; i++)
                     {
-                        TempString = MainText.Substring((i * L), L);
+                        TempString = MainText.Substring((i * (L / d)), L);
                         DistdText[i] = Dist1(TempString, Letter, r, l);
                     }
                     break;
 
                 case 2:
-                    for (int i = 0; i < N; N++)
+                    for (int i = 0; i < N; i++)
                     {
-                        TempString = MainText.Substring((i * L), L);
+                        TempString = MainText.Substring((i * (L / d)), L);
                         DistdText[i] = Dist2(TempString, Letter, l);
                     }
                     break;
 
                 case 3:
-                    for (int i = 0; i < N; N++)
+                    for (int i = 0; i < N; i++)
                     {
-                        TempString = MainText.Substring((i * L), L);
+                        TempString = MainText.Substring((i * (L / d)), L);
                         DistdText[i] = Dist3(TempString, Letter, l);
                     }
                     break;
 
                 case 4:
-                    for (int i = 0; i < N; N++)
+                    for (int i = 0; i < N; i++)
                     {
-                        TempString = MainText.Substring((i * L), L);
+                        TempString = MainText.Substring((i * (L / d)), L);
                         DistdText[i] = Dist4(TempString, Letter, l);
                     }
                     break;
@@ -433,9 +478,9 @@ namespace MoC2
         
 
 
-        static void Crit2_0(int l, double[] TrueFreq, string Text, char[] alphabet)
+        static int Crit2_0(int l, double[] TrueFreq, string Text, char[] alphabet, int FrequentQuantity)
         {
-            int FrequentQuantity = 5;                                       // quantity of frequent l-gramms
+            //int FrequentQuantity = 1;                                       // quantity of frequent l-gramms
             var FrequentGramms = GetFreq(TrueFreq, FrequentQuantity);
             int r = (int)Math.Pow(alphabet.Length, l);
             int m = alphabet.Length;
@@ -489,15 +534,17 @@ namespace MoC2
             }
 
             if (result == 0)
-                Console.WriteLine("Accept the hypotesis H0");
+                //Console.WriteLine("Accept the hypotesis H0");
+                return 0;
             else
-                Console.WriteLine("Accept the hypotesis H1");            
+                //Console.WriteLine("Accept the hypotesis H1");            
+                return 1;
         }
 
-        static void Crit2_1(int l, double[] TrueFreq, string Text, char[] alphabet)
+        static int Crit2_1(int l, double[] TrueFreq, string Text, char[] alphabet, int FrequentQuantity, int HypotesisLimit)
         {
-            int FrequentQuantity = 5;                                       // quantity of frequent l-gramms
-            int HypotesisLimit = (FrequentQuantity * 2) / 3;
+            //int FrequentQuantity = 5;                                       // quantity of frequent l-gramms
+            //int HypotesisLimit = (FrequentQuantity * 2) / 3;
             var FrequentGramms = GetFreq(TrueFreq, FrequentQuantity);
             int r = (int)Math.Pow(alphabet.Length, l);
             int m = alphabet.Length;
@@ -543,14 +590,16 @@ namespace MoC2
             }
 
             if (result < HypotesisLimit)
-                Console.WriteLine("Accept the hypotesis H1");
+                //Console.WriteLine("Accept the hypotesis H1");
+                return 1;
             else
-                Console.WriteLine("Accept the hypotesis H0");
+                //Console.WriteLine("Accept the hypotesis H0");
+                return 0;
         }
 
-        static void Crit2_2(int l, double[] TrueFreq, string Text, char[] alphabet)
+        static int Crit2_2(int l, double[] TrueFreq, string Text, char[] alphabet, int FrequentQuantity)
         {
-            int FrequentQuantity = 5;                                       // quantity of frequent l-gramms
+            //int FrequentQuantity = 5;                                       // quantity of frequent l-gramms
             var FrequentGramms = GetFreq(TrueFreq, FrequentQuantity);
             double[] TextFreq;
             int result = 0;
@@ -577,14 +626,16 @@ namespace MoC2
                     break;
                 }
             if (result == 0)
-                Console.WriteLine("Accept the hypotesis H0");
+                //Console.WriteLine("Accept the hypotesis H0");
+                return 0;
             else
-                Console.WriteLine("Accept the hypotesis H1");
+                //Console.WriteLine("Accept the hypotesis H1");
+                return 1;
         }
 
-        static void Crit2_3(int l, double[] TrueFreq, string Text, char[] alphabet)
+        static int Crit2_3(int l, double[] TrueFreq, string Text, char[] alphabet, int FrequentQuantity)
         {
-            int FrequentQuantity = 5;                                       // quantity of frequent l-gramms
+            //int FrequentQuantity = 5;                                       // quantity of frequent l-gramms
             var FrequentGramms = GetFreq(TrueFreq, FrequentQuantity);
             double[] TextFreq;
             double TrueFreqSum = 0, TextFreqSum = 0;
@@ -610,29 +661,35 @@ namespace MoC2
                 TextFreqSum += TextFreq[FrequentGramms[i]];
             }
             if (TextFreqSum < TrueFreqSum)
-                Console.WriteLine("Accept the hypotesis H1");
+                //Console.WriteLine("Accept the hypotesis H1");
+                return 1;
             else
-                Console.WriteLine("Accept the hypotesis H0");
+                //Console.WriteLine("Accept the hypotesis H0");
+                return 0;
         }
 
-        static void Crit4_0(int l, string TrueText, string Text, char[] alphabet)
+        static int Crit4_0(int l, string TrueText, string Text, char[] alphabet, double HypotesisLimit)
         {
             double TrueCIDX, TextCIDX;
-            double HypotesisLimit = 0;
+            //double HypotesisLimit = 0;
             double result;
 
             TrueCIDX = CompIdx(TrueText, alphabet, l);
             TextCIDX = CompIdx(Text, alphabet, l);
 
-            result = Math.Abs(TrueCIDX - TextCIDX);
+            result = Math.Abs(TrueCIDX - TrueCIDX);
+
+            
             if (result > HypotesisLimit)
-                Console.WriteLine("Accept the hypotesis H1");
+                //Console.WriteLine("Accept the hypotesis H1");
+                return 1;
             else
-                Console.WriteLine("Accept the hypotesis H0");
+                //Console.WriteLine("Accept the hypotesis H0");
+                return 0;
 
         }
 
-        static void Crit5_0(int l, double[] TrueFreq, string Text, char[] alphabet)
+        static int Crit5_0(int l, double[] TrueFreq, string Text, char[] alphabet)
         {
             int ProhibitetQuantity = 50;                                       // quantity of frequent l-gramms
             int HypotesisLimit = ProhibitetQuantity /2;
@@ -681,9 +738,11 @@ namespace MoC2
             }
             int resultEmpty = ProhibitetQuantity - result;
             if (resultEmpty <= HypotesisLimit)
-                Console.WriteLine("Accept the hypotesis H1");
+                //Console.WriteLine("Accept the hypotesis H1");
+                return 1;
             else
-                Console.WriteLine("Accept the hypotesis H0");
+                //Console.WriteLine("Accept the hypotesis H0");
+                return 0;
         }
 
 
@@ -697,18 +756,108 @@ namespace MoC2
             string MainText = File.ReadAllText("pr_text.txt");
             char[] Letter = new char[] {'а', 'б', 'в', 'г', 'д', 'е', 'є', 'ж', 'з', 'и', 'і', 'ї', 'й',
                 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'ю', 'я' };
+            //Console.WriteLine(MainText.Length);
+            var TrueMonoFrq = MonogramsFrequency(MainText, Letter);
+            var TrueBiFrq = BigramsFrequency(MainText, Letter);
 
-            //var t = BigramsFrequency(MainText, Letter);
-            var t = MonogramsFrequency(MainText, Letter);
+            int[] L = new int[] { 10, 100, 1000, 10000 };
+            int[] N = new int[] { 10000, 10000, 10000, 1000 };
+            int[] d = new int[] { 1, 3, 105, 15 };
+            //int[] mfrq = new int[] { 2, 3, 3, 3 };
+            //int[] mlim = new int[] { 1, 3, 3, 3 };
+            double[] mlim = new double[] { 0.1, 0.02, 0.02, 0.02 };
+            //int[] bfrq = new int[] { 3, 10, 10, 10 };
+            //int[] blim = new int[] { 1, 4, 4, 4 };
+            double[] blim = new double[] { 0.1, 0.02, 0.02, 0.02 };
+            int dist_method;
+            int HCounter_1;
+            int HCounter_2;
+            string MainTextPart;
+           
 
-            MainText = File.ReadAllText("pr_test.txt");
-            //var g = GetFreq(t, 5);
-            //foreach(int i in g)
-             //   Console.WriteLine(Letter[i/ 32]+ " " + Letter[i%32]);
-            Crit2_1(1, t, MainText, Letter);
+            
+            using (StreamWriter sw = File.CreateText("4_0.txt"))
+            {
 
 
 
+                for (dist_method = 1; dist_method <= 4; dist_method++)
+                {
+                    sw.WriteLine("Distortion method - " + dist_method);
+                    sw.WriteLine();
+                    for (int t = 0; t < 4; t++)
+                    {
+                        sw.WriteLine("L = " + L[t] + "  N = " + N[t] + " l = " + 1);
+                        //Console.WriteLine("Distortioning texts.");
+                        string[] distTexts = DistortTexts(L[t], N[t], dist_method, d[t], 1);
+                        //Console.WriteLine("Distortion complete.");
+                        //Console.WriteLine("Launching criteria check.");
+                        MainTextPart = MainText.Substring(2 * L[t], L[t]);
+                        HCounter_1 = 0;
+                        HCounter_2 = 0;
+
+
+                        for (int i = 0; i < N[t]; i++)
+                        {
+                            HCounter_1 += Crit4_0(1, TrueMonoFrq, distTexts[i], Letter, mlim[t]);
+                            HCounter_2 += Crit4_0(2, TrueBiFrq, distTexts[i], Letter, blim[t]);
+                            
+                        }
+
+                        //Console.WriteLine("Criteria check complete.");
+
+
+
+
+                        sw.WriteLine("mono: " + (N[t] - HCounter_1) / (float)N[t]);
+                        sw.WriteLine(" bi : " + (N[t] - HCounter_2) / (float)N[t]);
+                        sw.WriteLine();
+                        sw.WriteLine();
+
+                    }
+
+                    sw.WriteLine("--------------------------------------------------------------------------------------------");
+                    sw.WriteLine();
+                    sw.WriteLine();
+                    Console.WriteLine("Distortion method - " + dist_method + " l = " + 1);
+
+
+
+                    for (int t = 0; t < 4; t++)
+                    {
+                        sw.WriteLine("L = " + L[t] + "  N = " + N[t] + " l = " + 2);
+                        //Console.WriteLine("Distortioning texts.");
+                        string[] distTexts = DistortTexts(L[t], N[t], dist_method, d[t], 2);
+                        //Console.WriteLine("Distortion complete.");
+                        //Console.WriteLine("Launching criteria check.");
+                        MainTextPart = MainText.Substring(2 * L[t], L[t]);
+                        HCounter_1 = 0;
+                        HCounter_2 = 0;
+
+
+                        for (int i = 0; i < N[t]; i++)
+                        {
+                            HCounter_1 += Crit4_0(1, TrueMonoFrq, distTexts[i], Letter, mlim[t]);
+                            HCounter_2 += Crit4_0(2, TrueBiFrq, distTexts[i], Letter, blim[t]);
+                        }
+
+                        //Console.WriteLine("Criteria check complete.");
+
+
+
+
+                        sw.WriteLine("mono: " + (N[t] - HCounter_1) / (float)N[t]);
+                        sw.WriteLine(" bi : " + (N[t] - HCounter_2) / (float)N[t]);
+                        sw.WriteLine();
+                        sw.WriteLine();
+                    }
+                    sw.WriteLine("///////////////////////////////////////////////////////////////////////////////////////////////");
+                    Console.WriteLine("Distortion method - " + dist_method + " l = " + 2);
+                }
+
+            }
+
+                
             Console.WriteLine("Done.");
             Console.ReadKey();
         }
